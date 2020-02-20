@@ -1,5 +1,6 @@
 const chai = require('chai');
 const { expect, assert } = chai;
+const fs = require('fs')
 it.optional = require('../extensions/it-optional');
 
 Object.freeze(assert);
