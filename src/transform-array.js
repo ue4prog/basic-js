@@ -29,7 +29,6 @@ function transform(arr) {
     }
     const oldArray = [...arr];
     return arr.reduce((transformed, element, index) => {
-        debugger;
         return (commandsMap.get(element) ? commandsMap.get(element)(transformed, oldArray, index, arr) : [...transformed, element])
             .filter(el => el !== undefined);
     }, [])

@@ -6,21 +6,32 @@ const chainMaker = {
   },
 
   addLink(value) {
-
-    return this
+    this.result.push(''+value);
+    return this;
   },
 
   removeLink(position) {
-    return this
+    if (typeof position == 'number' && position <= this.result.length && position > 0){
+      this.result.splice(position - 1, 1);
+      return this;
+      }
+    else {
+      this.result = [];
+      throw new Error;
+    }
   },
 
   reverseChain() {
     this.result.reverse();
-    return this
+    return this;
   },
 
   finishChain() {
-    return this.result.join('')
+    const result = this.result.map(el => {
+      return `( ${el} )`;
+    })
+    this.result = []
+    return result.join('~~');
   }
 };
 
