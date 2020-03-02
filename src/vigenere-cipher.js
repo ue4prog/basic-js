@@ -1,69 +1,83 @@
 class VigenereCipheringMachine {
     constructor(direct = true) {
         this.direct = direct;
-        this.alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''); 
-      }
-      encrypt(message, key) {
+        this.alphabetLength = 26;
+        this.alphabetToPosition = new Map('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter, index) => [letter, index]));
+        this.positionToAlphabet = new Map(Array.from(this.alphabetToPosition).map(el => [el[1], el[0]]));
+    }
+
+    /**
+     * c = (m(j) + k(j)) % n
+     * @param {string} message 
+     * @param {string} key 
+     * @returns {string} encoded string
+     */
+    encrypt(message, key) {
         if (!message || !key) {
             throw Error();
         }
-        const messageLetters = message;
-        console.log(messageLetters);
-        let keyFull =  key.repeat(messageLetters.length/key.length) + key.substring(0, messageLetters.length % key.length)
-        let messageArr = message.toUpperCase().split('').map(el => {
-            if (!this.alphabet.includes(el)){
-                return el ;
+        const formattedMessage = message.toUpperCase();
+        let encoded = '';
+        const resolvedKey = this.resolveKey(formattedMessage, key);
+        for (let i = 0; i < formattedMessage.length; i++) {
+            if (this.alphabetToPosition.has(formattedMessage[i])) {
+                const letterPosition =
+                    (this.alphabetToPosition.get(formattedMessage[i]) + this.alphabetToPosition.get(resolvedKey[i]))
+                    % this.alphabetLength;
+                encoded += this.positionToAlphabet.get(letterPosition)
+            } else {
+                encoded += formattedMessage[i]
             }
-            return this.alphabet.indexOf(el);
-        });
-        let keyFullArr = keyFull.toUpperCase().split('').map(el => {
-            return this.alphabet.indexOf(el)
-        })
-        const resultArr = [];
-        let j = 0;
-        for (let i = 0; i < messageArr.length; i++, j++) {
-            let el = messageArr[i];
-            if (el === " " || isNaN(el)) {
-                resultArr.push(el);
-                j--;
-                continue;
-            }
-            resultArr.push(this.alphabet[el] ? (el + keyFullArr[j]) % 26 : el)
         }
-        resultArr.filter(elem => elem !== null);
-        let result = resultArr.map(el =>{
-            return this.alphabet[el] ? this.alphabet[el] : el;
-        })
-        return result.join('');
-    }  
+        return this.direct ? encoded : encoded.split('').reverse().join('');
+    }
 
-    decrypt(message,key) {
+    decrypt(message, key) {
         if (!message || !key) throw Error();
+        const formattedMessage = message.toUpperCase();
+        let decoded = '';
+        const resolvedKey = this.resolveKey(formattedMessage, key);
+        for (let i = 0; i < formattedMessage.length; i++) {
+            if (this.alphabetToPosition.has(formattedMessage[i])) {
+                const letterPosition =
+                    (this.alphabetToPosition.get(formattedMessage[i]) - this.alphabetToPosition.get(resolvedKey[i]) + this.alphabetLength)
+                    % this.alphabetLength;
+                decoded += this.positionToAlphabet.get(letterPosition)
+            } else {
+                decoded += formattedMessage[i]
+            }
+        }
+        return this.direct ? decoded : decoded.split('').reverse().join('');
+    }
 
+    /**
+     * @param {string} message always upper case
+     * @param {string} key always upper case
+     * @returns {string} resolved key
+     */
+    resolveKey(message, key) {
+        let resolvedKey = '';
+        let i = 0, j = 0;
+        for (i; i < message.length; i++) {
+            if (this.alphabetToPosition.has(message[i])) {
+                resolvedKey += key[j] ? key[j] : this.resolveStringLength(j, key);
+            } else {
+                resolvedKey += ' ';
+                --j;
+            }
+            j++
+        }
+        return resolvedKey.toUpperCase();
+    }
+
+    /**
+     * @param {number} index index to resolve
+     * @param {string} string
+     * @returns {string} char at resolved index
+     */
+    resolveStringLength(index, string) {
+        return string[index] ? string[index] : this.resolveStringLength(index - string.length, string);
     }
 }
 
 module.exports = VigenereCipheringMachine;
-
-
-this.alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXY'.split('')
-function encrypt(message,key) {
-        if (!message || !key) throw Error();
-        let keyFull =  key.repeat(message.length/key.length) + key.substring(0, message.length % key.length)
-        let messageArr = message.toUpperCase().split('').filter( el => {
-            if (!this.alphabet.includes(el)){
-                return false ;
-            }
-            return true;
-        }).map(el => {return this.alphabet.indexOf(el)});
-        let keyFullArr = keyFull.toUpperCase().split('').map(el => {
-            return this.alphabet.indexOf(el)
-        })
-        let resultArr = messageArr.map((el, index) =>{
-            return (el + keyFullArr[index]) % 26; 
-        })
-        let result = resultArr.map(el =>{
-            return this.alphabet[el]
-        })
-        return result.join('');
-    } 
